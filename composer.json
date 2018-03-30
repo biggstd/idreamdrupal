@@ -5,7 +5,22 @@
     "license": "GPL-2.0+",
     "require": {
         "composer/installers": "^1.0.24",
-        "wikimedia/composer-merge-plugin": "^1.4"
+        "wikimedia/composer-merge-plugin": "^1.4",
+        "drupal/mathjax": "^2.7",
+        "drupal/admin_toolbar": "^1.23",
+        "drupal/pathauto": "^1.0",
+        "drupal/colorbox": "^1.4",
+        "drupal/webform": "^5.0",
+        "drupal/token": "^1.1",
+        "drupal/ctools": "^3.0",
+        "drupal/search_api": "^1.6",
+        "drupal/google_analytics": "^2.2",
+        "drupal/recaptcha": "^2.2",
+        "drupal/devel": "^1.2",
+        "drupal/backup_migrate": "^4.0",
+        "drupal/tablefield": "^2.0",
+        "drupal/field_group": "^3.0",
+        "drupal/field_collection": "^1.0"
     },
     "replace": {
         "drupal/core": "^8.4"
