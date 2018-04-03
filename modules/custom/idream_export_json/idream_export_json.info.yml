@@ -1,0 +1,6 @@
+name: iDream Export To JSON
+description: Exports scientific entities into a JSON format for visualization.
+package: Custom
+type: module
+version: 1.0
+core: 8.x

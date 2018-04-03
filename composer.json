@@ -2,28 +2,13 @@
     "name": "drupal/drupal",
     "description": "Drupal is an open source content management platform powering millions of websites and applications.",
     "type": "project",
-    "license": "GPL-2.0+",
+    "license": "GPL-2.0-or-later",
     "require": {
         "composer/installers": "^1.0.24",
-        "wikimedia/composer-merge-plugin": "^1.4",
-        "drupal/mathjax": "^2.7",
-        "drupal/admin_toolbar": "^1.23",
-        "drupal/pathauto": "^1.0",
-        "drupal/colorbox": "^1.4",
-        "drupal/webform": "^5.0",
-        "drupal/token": "^1.1",
-        "drupal/ctools": "^3.0",
-        "drupal/search_api": "^1.6",
-        "drupal/google_analytics": "^2.2",
-        "drupal/recaptcha": "^2.2",
-        "drupal/devel": "^1.2",
-        "drupal/backup_migrate": "^4.0",
-        "drupal/tablefield": "^2.0",
-        "drupal/field_group": "^3.0",
-        "drupal/field_collection": "^1.0"
+        "wikimedia/composer-merge-plugin": "^1.4"
     },
     "replace": {
-        "drupal/core": "^8.4"
+        "drupal/core": "^8.5"
     },
     "minimum-stability": "dev",
     "prefer-stable": true,
@@ -43,7 +28,7 @@
             "include": [
                 "core/composer.json"
             ],
-            "recurse": false,
+            "recurse": true,
             "replace": false,
             "merge-extra": false
         },
@@ -64,11 +49,13 @@
     },
     "scripts": {
         "pre-autoload-dump": "Drupal\\Core\\Composer\\Composer::preAutoloadDump",
-        "post-autoload-dump": [
-          "Drupal\\Core\\Composer\\Composer::ensureHtaccess"
-        ],
+        "post-autoload-dump": "Drupal\\Core\\Composer\\Composer::ensureHtaccess",
         "post-package-install": "Drupal\\Core\\Composer\\Composer::vendorTestCodeCleanup",
-        "post-package-update": "Drupal\\Core\\Composer\\Composer::vendorTestCodeCleanup"
+        "post-package-update": "Drupal\\Core\\Composer\\Composer::vendorTestCodeCleanup",
+        "drupal-phpunit-upgrade-check": "Drupal\\Core\\Composer\\Composer::upgradePHPUnit",
+        "drupal-phpunit-upgrade": "@composer update phpunit/phpunit --with-dependencies --no-progress",
+        "phpcs": "phpcs --standard=core/phpcs.xml.dist --runtime-set installed_paths $($COMPOSER_BINARY config vendor-dir)/drupal/coder/coder_sniffer --",
+        "phpcbf": "phpcbf --standard=core/phpcs.xml.dist --runtime-set installed_paths $($COMPOSER_BINARY config vendor-dir)/drupal/coder/coder_sniffer --"
     },
     "repositories": [
         {
