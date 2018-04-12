@@ -1,0 +1,6 @@
+idream_export_json.admin:
+  title: 'iDream Export module settings'
+  description: 'iDream Export JSON Settings Page'
+  parent: system.admin_config_development
+  route_name: idream_export_json.content
+  weight: 100

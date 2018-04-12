@@ -1,0 +1,11 @@
+idream_export_json.content:
+  path: '/idreamexport/{node}'
+  options:
+    parameters:
+      node:
+        type: entity:node
+  defaults: 
+    _controller: '\Drupal\idream_export_json\Controller\IdreamExportJsonController::export'
+    _title: 'Export JSON'
+  requirements:
+    _permission: 'access content'
