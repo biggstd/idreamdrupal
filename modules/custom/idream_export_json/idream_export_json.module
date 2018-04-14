@@ -1,0 +1,15 @@
+<?php
+
+/**
+ * Implements hook_theme().
+ */
+function idream_export_json_theme() {
+    return [
+        'visualization' => [
+            'variables' => array('link' => NULL),
+        ],
+        'exportbutton' => [
+            'variables' => ['link' => NULL]
+        ]
+    ];
+}

@@ -8,14 +8,14 @@ Use Drupal\node\Entity;
 Use Drupal\node\Entity\Node;
 Use Drupal\user\Entity\User;
 Use Drupal\field_collection\Entity\FieldCollectionItem;
+Use Symfony\Component\HttpFoundation\RedirectResponse;
+Use Drupal\Core\Url;
 
 class IdreamExportJsonController extends ControllerBase {
     /**
      * Function to export content to JSON
      */
     public function export(Node $node) {
-        //dpm($node);
-
         $output = [
             'ID' => $node->get('uuid')->getValue()[0]['value'],
             'Publications' => [
@@ -23,7 +23,6 @@ class IdreamExportJsonController extends ControllerBase {
                 'DOI' => $node->get('field_doi')->getValue()[0]['value'],
                 'Link' => $node->get('field_link')->getValue()[0]['uri'],
             ],
-            // 'Experimentalist(s)' => $this->getAuthorArray($node->get('uid')->getValue()[0]['target_id']),
             'Experimentalist(s)' => $this->getAuthorArray($node->get('field_experimentalist_user')->getValue()[0]['target_id']),
             'Experiment Date' => $node->get('field_experiment_date')->getValue()[0]['value'],
             'Experiment Protocol(s)' => [
@@ -39,13 +38,10 @@ class IdreamExportJsonController extends ControllerBase {
             'raw_data_file' => '',
             'processed_data_file' => ''
         ];
-        
-        dpm($output);
 
-        return [
-            '#type' => 'markup',
-            '#markup' => 'hi'//var_export($parameters['parameters']['node'], true)
-        ];
+        $this->save_json_to_dir($output, $node);
+        
+        return new RedirectResponse(URL::fromUserInput('/node/5')->toString());
     }
 
     /**
@@ -56,6 +52,32 @@ class IdreamExportJsonController extends ControllerBase {
             '#type' => 'markup',
             '#markup' => $this->t('Hello World')
         ];
+    }
+
+    /**
+     * This function creates the file and saves it to disk. In the future we'll need
+     * to create a drupal file, attach it to the node and save it to disk in the
+     * appropriate location. And do this on a entity save, then when visualization is
+     * requested just load the appropriate files.
+     * 
+     * Reference: https://www.drupal8.ovh/en/tutoriels/47/create-a-file-drupal-8
+     */
+    private function save_json_to_dir($output, $node) {
+        $unique_id = uniqid();
+
+        $output_dir = \Drupal::service('file_system')->realpath(file_default_scheme() . "://") . '/vizdata/' . $unique_id;
+
+        if(!is_dir($output_dir)) {
+            if(!mkdir($output_dir, 0777, true)) {
+                // Creating directory failed, log it, report it to user
+                \Drupal::logger('idream_export_json')->error('Creating directory for visualization failed, node_id = ' . $node->get('nid')->getValue()[0]['value']);
+            }
+        }
+
+        file_put_contents(
+            $output_dir . '/' . str_replace(' ', '_', $node->get('title')->getValue()[0]['value']) . '.json', 
+            json_encode($output)
+        );
     }
 
     /**
