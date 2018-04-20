@@ -20,9 +20,10 @@ use Drupal\Core\Block\BlockBase;
       */
       public function build() {
           return [
+              '#cache' => ['max-age' => 0],
               '#theme' => 'visualization',
-              '#link' => 'lampdev02.pnl.gov/idreamviz'
-            // '#link' =>\Drupal::request()->query->get('id')
+              '#link' => 'lampdev02.pnl.gov/idreamviz',
+              '#id' => \Drupal::request()->query->get('id')
           ];
       }
  }

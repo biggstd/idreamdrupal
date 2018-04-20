@@ -6,7 +6,7 @@
 function idream_export_json_theme() {
     return [
         'visualization' => [
-            'variables' => array('link' => NULL),
+            'variables' => array('link' => NULL, 'id' => NULL),
         ],
         'exportbutton' => [
             'variables' => ['link' => NULL]

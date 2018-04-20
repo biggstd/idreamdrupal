@@ -22,7 +22,6 @@ use Drupal\Core\Block\BlockBase;
           return [
               '#theme' => 'exportbutton',
               '#link' => 'https://lampdev02.pnl.gov/akop194/idream/idreamexport/3'
-            // '#link' =>\Drupal::request()->query->get('id')
           ];
       }
  }

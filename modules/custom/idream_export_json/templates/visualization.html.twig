@@ -1,5 +1,7 @@
 <div id="idream_data_visualization">
   {{ link }}
-  {{ app.request.attributes.get('id') }}
-  <iframe src="https://lampdev02.pnl.gov/idreamviz" width="100%" height="800" style="border:none;"></iframe>
+  {{ dump(app.request.attributes.get('id')) }}
+  {{ dump(id) }}
+  <!---<iframe src="https://lampdev02.pnl.gov/idreamviz?J=" width="100%" height="800" style="border:none;"></iframe>-->
+  <iframe src="https://idreamvisualization.pnl.gov?J={{ link}}" width="100%" height="800" style="border:none;"></iframe>
 </div>
