@@ -95,6 +95,9 @@ class nmrExport {
     private function getReferenceCompounds($compound) {
         $term = \Drupal::entityManager()->getStorage('taxonomy_term')->load($compound);
 
+        if(!$term) {
+            return '';
+        }
         return $term->name->getValue()[0]['value'];
     }
 
