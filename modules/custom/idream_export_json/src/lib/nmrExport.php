@@ -80,8 +80,7 @@ class nmrExport {
      */
     private function getAuthorArray($uid) {
         $user = User::load($uid);
-        var_dump($user);
-        exit();
+
         return [
             $user->get('name')->getValue()[0]['value'] => [
                 'Affiliation' => 'Default',
