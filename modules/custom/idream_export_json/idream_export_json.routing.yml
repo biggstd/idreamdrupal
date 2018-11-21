@@ -9,3 +9,11 @@ idream_export_json.content:
     _title: 'Export JSON'
   requirements:
     _permission: 'access content'
+
+idream_export_json.admin_settings:
+  path: '/admin/config/idream_export_json'
+  defaults:
+    _form: '\Drupal\ideram_export_json\Form\ModuleConfigurationForm'
+    _title: 'iDream Export JSON Configuration Screen'
+  requirements:
+    _permission: 'administer site configuration'
