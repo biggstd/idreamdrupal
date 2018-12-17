@@ -1,0 +1,30 @@
+version: "3"
+
+services:
+  mariadb:
+    image: mariadb:10.4
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+      MYSQL_DATABASE: idream
+      MYSQL_USER: idream
+      MYSQL_PASSWORD: password
+    volumes:
+      - ./mysql:/var/lib/mysql
+      - ./mariadb-entry-point:/docker-entrypoint-initdb.d # Place init .sql file(s) here.
+    expose:
+      - "3306"
+    restart: always
+
+  app:
+    build:
+      context: .
+    environment:
+      DEPLOYMENT_ENV: development
+    volumes:
+      - /tmp:/tmp
+      - .:/var/www/html/
+    links:
+      - mariadb
+    ports:
+      - "127.0.0.1:8080:80"
+    restart: always

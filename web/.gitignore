@@ -1,0 +1,6 @@
+vendor
+sites/default/files
+sites/default/settings.local.php
+modules/contrib
+./libraries
+.idea/
