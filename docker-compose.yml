@@ -28,3 +28,13 @@ services:
     ports:
       - "127.0.0.1:8080:80"
     restart: always
+
+  viz:
+    image: tylerbiggs/idreamvis:63
+    volumes:
+      - ./sites/default/files/vizdata:/opt/isadream/data
+    expose:
+      - "5006"
+    links:
+      - app
+    restart: always
