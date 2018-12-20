@@ -26,9 +26,9 @@ class exportController extends ControllerBase {
     function export(array $nodes) {
         $this->unique_output_id = uniqid();
         $this->nmr =  new \Drupal\idream_export_json\lib\nmrExport($this->unique_output_id);
-
+        
         foreach($nodes as $node) {
-            if($node->get('type')->getValue()[0]['target_id'] == 'nmr') {
+            if($node->get('type')->getValue()[0]['target_id'] == 'experiment') {
                 $this->nmr->buildAndSave($node);
             }
         }
@@ -39,7 +39,7 @@ class exportController extends ControllerBase {
      * This will redirect the user to the visualization page
      */
     public function redirectToVisualization() {
-        return new RedirectResponse(URL::fromUserInput('/node/5?id=' . $this->unique_output_id)->toString());
+        return new RedirectResponse(URL::fromUserInput('/node/23?id=' . $this->unique_output_id)->toString());
     }
 }
 

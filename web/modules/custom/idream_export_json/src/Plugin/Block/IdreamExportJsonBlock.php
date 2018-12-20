@@ -22,7 +22,7 @@ use Drupal\Core\Block\BlockBase;
           return [
               '#cache' => ['max-age' => 0],
               '#theme' => 'visualization',
-              '#link' => 'lampdev02.pnl.gov/idreamviz',
+              '#link' => 'localhost:8080/idreamviz',
               '#id' => \Drupal::request()->query->get('id')
           ];
       }

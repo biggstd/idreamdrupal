@@ -5,6 +5,8 @@ namespace Drupal\idream_export_json\Form;
 use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 
+/* Class "\\Drupal\\ideram_export_json\\Form\\ModuleConfigurationForm" does not exist*/
+
 /**
  * Defines a form that configures forms module settings.
  */
@@ -31,10 +33,10 @@ class ModuleConfigurationForm extends ConfigFormBase {
      */
     public function buildForm(array $form, FormStateInterface $form_state) {
         $config = $this->config('idream_export_json.settings');
-        $form['your_message'] = [
+        $form['viz_url'] = [
             '#type' => 'textfield',
-            '#title' => $this->t('Your message'),
-            '#default_value' => $config->get('your_message'),
+            '#title' => $this->t('Visualization App URL'),
+            '#default_value' => $config->get('viz_url'),
         ];
         return parent::buildForm($form, $form_state);
     }
@@ -45,7 +47,7 @@ class ModuleConfigurationForm extends ConfigFormBase {
     public function submitForm(array &$form, FormStateInterface $form_state) {
         $values = $form_state->getValues();
         $this->config('idream_export_json.settings')
-            ->set('your_message', $values['your_message'])
+            ->set('viz_url', $values['viz_url'])
             ->save();
         parent::submitForm($form, $form_state);
     }

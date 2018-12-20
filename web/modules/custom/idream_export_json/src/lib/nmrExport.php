@@ -19,13 +19,17 @@ class nmrExport {
     }
 
     public function buildAndSave(Node $node) {
+        \Drupal::logger('idream')->error('poop');
         $this->node = $node;
         $this->build();
         $this->save();
+
+        return true;
     }
 
     private function build() {
-        $this->output = [
+        // OLD
+        /*$this->output = [
             'ID' => $this->node->get('uuid')->getValue()[0]['value'],
             'Publications' => [
                 'Title' => $this->node->get('title')->getValue()[0]['value'],
@@ -46,6 +50,23 @@ class nmrExport {
             'study_factors' => $this->getStudyFactors($this->node->field_study_factor),
             'raw_data_file' => '',
             'processed_data_file' => ''
+        ];*/
+        // NEW
+        
+        $this->output = [
+            'node_information' => [
+                'node_title' => $this->node->get('title')->getValue()[0]['value'],
+                'node_description' => "",
+                'node_url' => '',//$this->node->get('field_link')->getValue()[0]['uri'],
+                'submission_date' => '',
+                'public_release_date' => ''
+            ],
+            'node_samples' => '',//$this->getSamples($this->node->field_samples),
+            'node_experiments' => '',
+            'node_comments' => [
+                'comment_title' => '',
+                'comment_body' => ''
+            ]
         ];
     }
 
@@ -59,6 +80,8 @@ class nmrExport {
      */
     private function save() {
         $output_dir = \Drupal::service('file_system')->realpath(file_default_scheme() . "://") . '/vizdata/' . $this->unique_output_id;
+        \Drupal::logger('idream')->error('hi');
+        \Drupal::logger('idream')->error(print_r($output_dir,true));
 
         if(!is_dir($output_dir)) {
             if(!mkdir($output_dir, 0777, true)) {
@@ -135,6 +158,12 @@ class nmrExport {
         }
 
         return $return;
+    }
+
+    private function getExperiments() {
+        $result = [];
+
+        return $result;
     }
 
 }

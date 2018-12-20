@@ -21,7 +21,7 @@ use Drupal\Core\Block\BlockBase;
       public function build() {
           return [
               '#theme' => 'exportbutton',
-              '#link' => 'https://idreamdrupal.test/idreamexport/3'
+              '#link' => '/idreamexport/7' // This needs to grab the node id of the page its on
           ];
       }
  }

@@ -25,8 +25,10 @@ services:
       - .:/var/www/html/
     links:
       - mariadb
+      - viz
     ports:
       - "127.0.0.1:8080:80"
+      - "127.0.0.1:9000:9000"
     restart: always
 
   viz:
@@ -35,6 +37,15 @@ services:
       - ./sites/default/files/vizdata:/opt/isadream/data
     expose:
       - "5006"
+    ports:
+      - "127.0.0.1:5006:5006"
+    restart: always
+
+  drush:
+    image: drush/drush:8
+    volumes:
+      - ./:/var/www/html
     links:
       - app
-    restart: always
+      - mariadb
+    command: drush cc all

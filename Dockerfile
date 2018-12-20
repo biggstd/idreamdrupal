@@ -18,12 +18,14 @@ RUN sed -ri -e 's!/var/www!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf 
 # Enable mod rewrite for clean urls
 RUN a2enmod rewrite
 
+# Use the default development configuration
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+
 # Install additional PHP Libraries
 RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-dir=/usr/include/ \
 	&& docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-install opcache \
     && docker-php-ext-install pdo_mysql
-#   && apt-get install -y php7.0-mysql \
 
 # Install PHP packes via PECL, xdebug is for dev only
 RUN pecl install xdebug-2.6.0 \

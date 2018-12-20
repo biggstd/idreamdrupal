@@ -19,7 +19,7 @@ class IdreamExportJsonController extends ControllerBase {
     public function export(Node $node) {
         $exportController =  new \Drupal\idream_export_json\Controller\exportController();
         $exportController->export([$node]);
-        
+
         return $exportController->redirectToVisualization();
     }
 
