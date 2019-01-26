@@ -7,7 +7,8 @@ RUN apt-get install -y htop \
 		libjpeg62-turbo-dev \
 		libpng-dev \
         wget \
-        gnupg
+        gnupg \
+        iputils-ping
 
 # Set new Apache root dir
 ENV APACHE_DOCUMENT_ROOT /var/www/html/web
@@ -30,3 +31,7 @@ RUN docker-php-ext-configure gd --with-freetype-dir=/usr/include/ --with-jpeg-di
 # Install PHP packes via PECL, xdebug is for dev only
 RUN pecl install xdebug-2.6.0 \
 	&& docker-php-ext-enable xdebug
+
+# Install Drush
+RUN wget -O /usr/local/bin/drush https://github.com/drush-ops/drush/releases/download/8.1.18/drush.phar
+RUN chmod +x /usr/local/bin/drush

@@ -13,6 +13,8 @@ services:
       - ./mariadb-entry-point:/docker-entrypoint-initdb.d # Place init .sql file(s) here.
     expose:
       - "3306"
+    ports:
+      - "127.0.0.1:3307:3306"
     restart: always
 
   app:
@@ -20,6 +22,7 @@ services:
       context: .
     environment:
       DEPLOYMENT_ENV: development
+      XDEBUG_CONFIG: "remoPte_connect_back=1 remote_autostart=1 remote_enable=1 remote_host=docker.for.mac.localhost"
     volumes:
       - /tmp:/tmp
       - .:/var/www/html/
@@ -28,11 +31,10 @@ services:
       - viz
     ports:
       - "127.0.0.1:8080:80"
-      - "127.0.0.1:9000:9000"
     restart: always
 
   viz:
-    image: tylerbiggs/idreamvis:63
+    image: tylerbiggs/chemmd:26
     volumes:
       - ./sites/default/files/vizdata:/opt/isadream/data
     expose:
@@ -41,11 +43,11 @@ services:
       - "127.0.0.1:5006:5006"
     restart: always
 
-  drush:
-    image: drush/drush:8
-    volumes:
-      - ./:/var/www/html
-    links:
-      - app
-      - mariadb
-    command: drush cc all
+  # drush:
+  #   image: drush/drush:8
+  #   volumes:
+  #     - ./:/var/www/html
+  #   links:
+  #     - app
+  #     - mariadb
+  #   command: drush cc all

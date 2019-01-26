@@ -19,9 +19,17 @@ use Drupal\Core\Block\BlockBase;
       * {@inheritdoc}
       */
       public function build() {
-          return [
-              '#theme' => 'exportbutton',
-              '#link' => '/idreamexport/7' // This needs to grab the node id of the page its on
-          ];
+        $node = \Drupal::routeMatch()->getParameter('node');
+        $nid = 0;
+
+        if ($node instanceof \Drupal\node\NodeInterface) {
+            // You can get nid and anything else you need from the node object.
+            $nid = $node->id();
+        }
+
+        return [
+            '#theme' => 'exportbutton',
+            '#link' => '/idreamexport/' . $nid // This needs to grab the node id of the page its on
+        ];
       }
  }

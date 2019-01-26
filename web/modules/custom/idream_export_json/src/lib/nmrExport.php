@@ -56,18 +56,48 @@ class nmrExport {
         $this->output = [
             'node_information' => [
                 'node_title' => $this->node->get('title')->getValue()[0]['value'],
-                'node_description' => "",
-                'node_url' => '',//$this->node->get('field_link')->getValue()[0]['uri'],
-                'submission_date' => '',
-                'public_release_date' => ''
+                'node_description' => $this->getNodeDescription(),
+                'node_url' => $this->getNodeURL(),
+                'submission_date' => $this->getNodeCreatedDate(),
+                'public_release_date' => '' // ?Where is this coming from? This will require a module for published on date, or a manual field
             ],
-            'node_samples' => '',//$this->getSamples($this->node->field_samples),
+            'node_samples' => $this->getSamples($this->node->field_experiment_samples), // !!!! TODO: I LEFT OFF HERE !!!!
             'node_experiments' => '',
             'node_comments' => [
                 'comment_title' => '',
                 'comment_body' => ''
             ]
         ];
+    }
+
+    /** 
+     * This function returns a formated date string of the date the node was created, i.e submission date.
+     */
+    private function getNodeCreatedDate() {
+        return date("Y-m-d", substr($this->node->getCreatedTime(), 0, 10));
+    }
+
+    /**
+     * This function returns a direct url to this node, base url and path included
+     */
+    private function getNodeURL() {
+        return \Drupal::request()->getHost() . \Drupal::service('path.alias_manager')->getAliasByPath('/node/'.$this->node->id());;
+    }
+
+    /**
+     * Returns the entity referenced field value of field_experiment_comment, attempts 
+     * to strip the HTML that returns from it.
+     */
+    private function getNodeDescription() {
+        return strip_tags(
+            $this->node->get('field_experiment_comment')
+                ->first()
+                ->get('entity')
+                ->getTarget()
+                ->getValue()
+                ->body
+                ->getValue()[0]['value']
+            );
     }
 
     /**
@@ -92,7 +122,7 @@ class nmrExport {
 
         file_put_contents(
             $output_dir . '/' . str_replace(' ', '_', $this->node->get('title')->getValue()[0]['value']) . '.json', 
-            json_encode($this->output)
+            json_encode($this->output, JSON_PRETTY_PRINT)
         );
 
         return true;

@@ -39,7 +39,7 @@ class exportController extends ControllerBase {
      * This will redirect the user to the visualization page
      */
     public function redirectToVisualization() {
-        return new RedirectResponse(URL::fromUserInput('/node/23?id=' . $this->unique_output_id)->toString());
+        return new RedirectResponse(URL::fromUserInput('/bokehvisualization?id=' . $this->unique_output_id)->toString());
     }
 }
 
