@@ -22,7 +22,7 @@ use Drupal\Core\Block\BlockBase;
           return [
               '#cache' => ['max-age' => 0],
               '#theme' => 'visualization',
-              '#link' => 'localhost:8080/idreamviz',
+              '#link' => \Drupal::config('idream_export_json.settings')->get('viz_url'),
               '#id' => \Drupal::request()->query->get('id')
           ];
       }

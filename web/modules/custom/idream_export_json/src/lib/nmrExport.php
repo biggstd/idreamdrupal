@@ -19,7 +19,6 @@ class nmrExport {
     }
 
     public function buildAndSave(Node $node) {
-        \Drupal::logger('idream')->error('poop');
         $this->node = $node;
         $this->build();
         $this->save();
@@ -62,11 +61,8 @@ class nmrExport {
                 'public_release_date' => '' // ?Where is this coming from? This will require a module for published on date, or a manual field
             ],
             'node_samples' => $this->getSamples($this->node->field_experiment_samples), 
-            'node_experiments' => '',
-            'node_comments' => [
-                'comment_title' => '',
-                'comment_body' => ''
-            ]
+            'node_experiments' => $this->getExperiments($this->node->field_experiment_factors),
+            'node_comments' => $this->getComments($this->node->field_experiment_comment),
         ];
     }
 
@@ -110,8 +106,6 @@ class nmrExport {
      */
     private function save() {
         $output_dir = \Drupal::service('file_system')->realpath(file_default_scheme() . "://") . '/vizdata/' . $this->unique_output_id;
-        \Drupal::logger('idream')->error('hi');
-        \Drupal::logger('idream')->error(print_r($output_dir,true));
 
         if(!is_dir($output_dir)) {
             if(!mkdir($output_dir, 0777, true)) {
@@ -248,10 +242,37 @@ class nmrExport {
         return \Drupal\taxonomy\Entity\Term::load($species_id)->getName();
     }
 
-    private function getExperiments() {
+    private function getExperiments($factor_entities) {
         $result = [];
 
+        if(isset($factor_entities->target_id)) {
+            $factors = $factor_entities->getIterator();
+
+            foreach($factors as $factor) {
+                $factor_node = \Drupal\node\Entity\Node::load($factor->target_id);
+
+                $result[] = [];
+            }
+        }
+
         return $result;
+    }
+
+    /**
+     * Grabs all of the comments in the array and returns an array of arrays with comment title and body.
+     */
+    private function getComments($comment_entities) {
+        $return = [];
+
+        foreach($comment_entities as $comment_entity) {
+            $comment = \Drupal\node\Entity\Node::load($comment_entity->target_id);
+            $return[] = [
+                'comment_title' => $comment->title->value,
+                'comment_body' => strip_tags($comment->body->value),
+            ];
+        }
+
+        return $return;
     }
 
 }

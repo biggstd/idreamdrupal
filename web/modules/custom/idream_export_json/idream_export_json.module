@@ -6,7 +6,7 @@
 function idream_export_json_theme() {
     return [
         'visualization' => [
-            'variables' => array('link' => NULL, 'id' => NULL),
+            'variables' => array('link' => \Drupal::config('idream_export_json.settings')->get('viz_url'), 'id' => NULL),
         ],
         'exportbutton' => [
             'variables' => ['link' => NULL]
