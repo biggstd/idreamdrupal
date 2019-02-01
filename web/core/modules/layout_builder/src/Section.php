@@ -322,8 +322,7 @@ class Section {
   /**
    * Returns an array representation of the section.
    *
-   * @internal
-   *   This is intended for use by a storage mechanism for sections.
+   * Only use this method if you are implementing custom storage for sections.
    *
    * @return array
    *   An array representation of the section component.
@@ -336,6 +335,34 @@ class Section {
         return $component->toArray();
       }, $this->getComponents()),
     ];
+  }
+
+  /**
+   * Creates an object from an array representation of the section.
+   *
+   * Only use this method if you are implementing custom storage for sections.
+   *
+   * @param array $section
+   *   An array of section data in the format returned by ::toArray().
+   *
+   * @return static
+   *   The section object.
+   */
+  public static function fromArray(array $section) {
+    return new static(
+      $section['layout_id'],
+      $section['layout_settings'],
+      array_map([SectionComponent::class, 'fromArray'], $section['components'])
+    );
+  }
+
+  /**
+   * Magic method: Implements a deep clone.
+   */
+  public function __clone() {
+    foreach ($this->components as $uuid => $component) {
+      $this->components[$uuid] = clone $component;
+    }
   }
 
 }

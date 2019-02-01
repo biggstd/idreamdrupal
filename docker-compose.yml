@@ -34,7 +34,7 @@ services:
     restart: always
 
   viz:
-    image: tylerbiggs/chemmd:26
+    image: tylerbiggs/chemmd:27
     volumes:
       - ./sites/default/files/vizdata:/opt/isadream/data
     expose:
