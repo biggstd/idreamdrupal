@@ -16,6 +16,7 @@ class nmrExport {
         $this->unique_output_id = $unique_id;
         $this->output = [];
         $this->node = null;
+        $this->node_information = null;
     }
 
     public function buildAndSave(Node $node) {
@@ -58,12 +59,17 @@ class nmrExport {
                 'node_description' => $this->getNodeDescription(),
                 'node_url' => $this->getNodeURL(),
                 'submission_date' => $this->getNodeCreatedDate(),
-                'public_release_date' => '' // ?Where is this coming from? This will require a module for published on date, or a manual field
+                'public_release_date' => $this->getPublishedDate()
             ],
+            'node_factors' => $this->getFactors(), 
             'node_samples' => $this->getSamples($this->node->field_experiment_samples), 
             'node_experiments' => $this->getExperiments($this->node->field_experiment_factors),
             'node_comments' => $this->getComments($this->node->field_experiment_comment),
         ];
+    }
+
+    private function getFactors() {
+        return [];
     }
 
     /** 
@@ -81,19 +87,29 @@ class nmrExport {
     }
 
     /**
+     * Returns the published date as string
+     *
+     * @return string publishedDate
+     */
+    private function getPublishedDate() {
+        if(!isset($this->node_information)) {
+            $target_id = $this->node->field_information_entity->target_id;
+            $this->node_information = \Drupal\node\Entity\Node::load($target_id);
+        }
+        return $this->node_information->field_public_release_date->getValue()[0]['value'];
+    }
+
+    /**
      * Returns the entity referenced field value of field_experiment_comment, attempts 
      * to strip the HTML that returns from it.
      */
     private function getNodeDescription() {
-        return strip_tags(
-            $this->node->get('field_experiment_comment')
-                ->first()
-                ->get('entity')
-                ->getTarget()
-                ->getValue()
-                ->body
-                ->getValue()[0]['value']
-            );
+        if(!isset($this->node_information)) {
+            $target_id = $this->node->field_information_entity->target_id;
+            $this->node_information = \Drupal\node\Entity\Node::load($target_id);
+        }
+
+        return $this->node_information->field_description->getValue()[0]['value'];
     }
 
     /**
@@ -242,6 +258,9 @@ class nmrExport {
         return \Drupal\taxonomy\Entity\Term::load($species_id)->getName();
     }
 
+    /**
+     * Grabs all the experemints from assay content type
+     */
     private function getExperiments($factor_entities) {
         $result = [];
 
