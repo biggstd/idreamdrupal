@@ -61,19 +61,34 @@ class nmrExport {
                 'submission_date' => $this->getNodeCreatedDate(),
                 'public_release_date' => $this->getPublishedDate()
             ],
-            'node_factors' => $this->getFactors(), 
+            'node_factors' => $this->getFactors($this->node->field_experiment_factors), 
             'node_samples' => $this->getSamples($this->node->field_experiment_samples), 
-            'node_experiments' => $this->getExperiments($this->node->field_experiment_factors),
+            'node_experiments' => $this->getExperiments($this->node->field_assay),
             'node_comments' => $this->getComments($this->node->field_experiment_comment),
         ];
     }
 
-    private function getFactors() {
-        return [];
+    /**
+     * Builds an array of factors, calling the underlying getFactor function to return an array of 
+     * individual factor data.
+     *
+     * @param array $factors
+     * @return array $return
+     */
+    private function getFactors($factors) {
+        $return = [];
+
+        foreach($factors as $factor) {
+            $return[] = $this->getFactor($factor->target_id);
+        }
+
+        return $return;
     }
 
-    /** 
+    /**
      * This function returns a formated date string of the date the node was created, i.e submission date.
+     *
+     * @return string date
      */
     private function getNodeCreatedDate() {
         return date("Y-m-d", substr($this->node->getCreatedTime(), 0, 10));
@@ -81,6 +96,8 @@ class nmrExport {
 
     /**
      * This function returns a direct url to this node, base url and path included
+     *
+     * @return string URL
      */
     private function getNodeURL() {
         return \Drupal::request()->getHost() . \Drupal::service('path.alias_manager')->getAliasByPath('/node/'.$this->node->id());;
@@ -102,6 +119,8 @@ class nmrExport {
     /**
      * Returns the entity referenced field value of field_experiment_comment, attempts 
      * to strip the HTML that returns from it.
+     *
+     * @return string description
      */
     private function getNodeDescription() {
         if(!isset($this->node_information)) {
@@ -166,6 +185,9 @@ class nmrExport {
 
     /**
      * This function assembles the samples associated with an experiment
+     *
+     * @param array $samples
+     * @return array $return
      */
     private function getSamples($samples) {
         $return = [];
@@ -175,13 +197,7 @@ class nmrExport {
 
             $sample_data['sample_name'] = $node_sample->title->value;
 
-            if(isset($node_sample->field_factor_entity->target_id)) {
-                $sample_factors = $node_sample->field_factor_entity->getIterator();
-
-                foreach($sample_factors as $sample_factor) {
-                    $sample_data['sample_factors'][] = $this->getSampleFactors($sample_factor->target_id);
-                }
-            }
+            $sample_data['sample_factors'][] = $this->getFactors($node_sample->field_factor_entity);
 
             if(isset($node_sample->field_source_entitty->target_id)) {
                 $sample_sources = $node_sample->field_source_entitty->getIterator();
@@ -206,13 +222,19 @@ class nmrExport {
     }
 
     /**
-     * Function to return an array of sample factors, used in creating node_samples
+     * Function to return an array of factor data, used in creating node_samples and node_factors
+     *
+     * @param int $sample_factor_id
+     * @return arrays
      */
-    private function getSampleFactors($sample_factor_id) {
+    private function getFactor($sample_factor_id) {
         $sample_factor = \Drupal\node\Entity\Node::load($sample_factor_id);
 
         return [
             "factor_type" => isset($sample_factor->field_factor_type->value) ? $sample_factor->field_factor_type->value : '', 
+            "decimal_value" => isset($sample_factor->field_decimal_value->value) ? $sample_factor->field_decimal_value->value : '', 
+            "string_value" => isset($sample_factor->field_string_value->value) ? $sample_factor->field_string_value->value : '', 
+            "reference_value" => isset($sample_factor->field_reference_value->value) ? $sample_factor->field_reference_value->value : '',
             "unit_reference" => isset($sample_factor->field_unit->value) ? $sample_factor->field_unit->value : '',
             "csv_column_index" => isset($sample_factor->field_csv_column_index->value) ? $sample_factor->field_csv_column_index->value : ''
         ];
@@ -227,6 +249,9 @@ class nmrExport {
 
     /**
      * Function to return an array of sample sources, used in creating node_samples
+     *
+     * @param int $sample_species_id
+     * @return array
      */
     private function getSampleSpecies($sample_species_id) {
         $sample_species = \Drupal\node\Entity\Node::load($sample_species_id);
@@ -251,8 +276,11 @@ class nmrExport {
         return $return;
     }
 
-    /** 
+    /**
      * Returns the species taxonomy term name used in getSampleSpecies
+     *
+     * @param int $species_id
+     * @return string taxonomy_name
      */
     private function getSpeciesReference($species_id) {
         return \Drupal\taxonomy\Entity\Term::load($species_id)->getName();
@@ -260,25 +288,32 @@ class nmrExport {
 
     /**
      * Grabs all the experemints from assay content type
+     *
+     * @param array $factor_entities
+     * @return array $result
      */
-    private function getExperiments($factor_entities) {
+    private function getExperiments($experiments) {
         $result = [];
 
-        if(isset($factor_entities->target_id)) {
-            $factors = $factor_entities->getIterator();
-
-            foreach($factors as $factor) {
-                $factor_node = \Drupal\node\Entity\Node::load($factor->target_id);
-
-                $result[] = [];
-            }
+        foreach($experiments as $experiment) {
+            $experiment_node = \Drupal\node\Entity\Node::load($experiment->target_id);
+            $experiment_array['experiment_name'] = $experiment_node->title->value;
+            $experiment_array['experiment_datafile'] = file_create_url($experiment_node->field_experiment_data->entity->getFileUri());
+            $experiment_array['experiment_factors'] = $this->getFactors($experiment_node->field_experiment_factors);
+            $experiment_array['experiment_samples'] = $this->getSamples($experiment_node->field_sample);
+            $experiment_array['experiment_comments'] = $this->getComments($experiment_node->field_experiment_comment);
+            
+            $result[] = $experiment_array;
         }
-
+        
         return $result;
     }
 
     /**
      * Grabs all of the comments in the array and returns an array of arrays with comment title and body.
+     *
+     * @param array $comment_entities
+     * @return array $results
      */
     private function getComments($comment_entities) {
         $return = [];
@@ -293,5 +328,4 @@ class nmrExport {
 
         return $return;
     }
-
 }
