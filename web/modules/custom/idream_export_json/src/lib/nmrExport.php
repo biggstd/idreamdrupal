@@ -158,32 +158,6 @@ class nmrExport {
     }
 
     /**
-     * This should be using the field_experimentalist_user field
-     */
-    private function getAuthorArray($uid) {
-        $user = User::load($uid);
-
-        return [
-            $user->get('name')->getValue()[0]['value'] => [
-                'Affiliation' => 'Default',
-                'Contact Email' => $user->get('mail')->getValue()[0]['value']
-            ]
-        ];
-    }
-
-    /**
-     * Is this just a one entity reference?
-     */
-    private function getReferenceCompounds($compound) {
-        $term = \Drupal::entityManager()->getStorage('taxonomy_term')->load($compound);
-
-        if(!$term) {
-            return '';
-        }
-        return $term->name->getValue()[0]['value'];
-    }
-
-    /**
      * This function assembles the samples associated with an experiment
      *
      * @param array $samples
@@ -196,25 +170,10 @@ class nmrExport {
             $node_sample = \Drupal\node\Entity\Node::load($sample->target_id);
 
             $sample_data['sample_name'] = $node_sample->title->value;
-
-            $sample_data['sample_factors'][] = $this->getFactors($node_sample->field_factor_entity);
-
-            if(isset($node_sample->field_source_entitty->target_id)) {
-                $sample_sources = $node_sample->field_source_entitty->getIterator();
-
-                foreach($sample_sources as $sample_source) {
-                    $sample_data['sample_source'][] = $this->getSampleSource($sample_source->target_id);
-                }
-            }
-
-            if(isset($node_sample->field_species_entity->target_id)) {
-                $sample_species = $node_sample->field_species_entity->getIterator();
-
-                foreach($sample_species as $sample_specie) {
-                    $sample_data['sample_species'][] = $this->getSampleSpecies($sample_specie->target_id);
-                }
-            }
-
+            $sample_data['sample_factors'] = $this->getFactors($node_sample->field_factor_entity);
+            $sample_data['sample_source']= $this->getSource($node_sample->field_source_entity);
+            $sample_data['sample_species'] = $this->getSpecies($node_sample->field_species_entity);
+            
             $return[] = $sample_data;
         }
 
@@ -229,55 +188,64 @@ class nmrExport {
      */
     private function getFactor($sample_factor_id) {
         $sample_factor = \Drupal\node\Entity\Node::load($sample_factor_id);
+        $return = [];
+        
+        !isset($sample_factor->field_factor_type->value) ?: $return['factor_type'] = $sample_factor->field_factor_type->value; 
+        !isset($sample_factor->field_decimal_value->value) ?: $return['decimal_value'] = $sample_factor->field_decimal_value->value;
+        !isset($sample_factor->field_string_value->value) ?: $return['string_value'] = $sample_factor->field_string_value->value;
+        !isset($sample_factor->field_reference_value->value) ?: $return['reference_value'] = $sample_factor->field_reference_value->value;
+        !isset($sample_factor->field_unit->value) ?: $return['unit_reference'] = $sample_factor->field_unit->value;
+        !isset($sample_factor->field_csv_column_index->value) ?: $return['csv_column_index'] = $sample_factor->field_csv_column_index->value;
 
-        return [
-            "factor_type" => isset($sample_factor->field_factor_type->value) ? $sample_factor->field_factor_type->value : '', 
-            "decimal_value" => isset($sample_factor->field_decimal_value->value) ? $sample_factor->field_decimal_value->value : '', 
-            "string_value" => isset($sample_factor->field_string_value->value) ? $sample_factor->field_string_value->value : '', 
-            "reference_value" => isset($sample_factor->field_reference_value->value) ? $sample_factor->field_reference_value->value : '',
-            "unit_reference" => isset($sample_factor->field_unit->value) ? $sample_factor->field_unit->value : '',
-            "csv_column_index" => isset($sample_factor->field_csv_column_index->value) ? $sample_factor->field_csv_column_index->value : ''
-        ];
-    }
-
-    /**
-     * Function to return an array of sample sources, used in creating node_samples
-     */
-    private function getSampleSource($sample_source_id) {
-        // Skippping this for now, it has references back to factors, dont currently have a good example of this
+        return $return;
     }
 
     /**
      * Function to return an array of sample sources, used in creating node_samples
      *
-     * @param int $sample_species_id
-     * @return array
+     * @param array $sample_sources
+     * @return array $return
      */
-    private function getSampleSpecies($sample_species_id) {
-        $sample_species = \Drupal\node\Entity\Node::load($sample_species_id);
-
-        return [
-            "species_reference" => isset($sample_species->field_species->target_id) ? 
-                $this->getSpeciesReference($sample_species->field_species->target_id) : '', 
-            "stoichiometry" => isset($sample_species->field_stoichiometry->value) ? $sample_species->field_stoichiometry->value : '',
-        ];
-    }
-
-    private function getStudyFactors($study_factors) {
+    private function getSource($sample_sources) {
         $return = [];
 
-        foreach($study_factors as $study_factor) {
-            $fieldCollectionItem = FieldCollectionItem::load($study_factor->value);
+        foreach($sample_sources as $sample_source) {
+            $source_node = \Drupal\node\Entity\Node::load($sample_source->target_id);
 
-            $return[$fieldCollectionItem->field_study_factor_name->value] = 
-                $fieldCollectionItem->field_molarity->value;
+            $return[] = [
+                'source_name' => $source_node->title->value,
+                'source_factors' => $this->getFactors($source_node->field_factor_entity),
+                'source_species' => $this->getSpecies($source_node->field_species_entity),
+            ];
         }
 
         return $return;
     }
 
     /**
-     * Returns the species taxonomy term name used in getSampleSpecies
+     * Function to return an array of sample sources, used in creating node_samples
+     *
+     * @param int $sample_species_id
+     * @return array $return
+     */
+    private function getSpecies($sample_species) {
+        $return = [];
+    
+        foreach($sample_species as $sample_specie) {
+            $species_node = \Drupal\node\Entity\Node::load($sample_specie->target_id);
+
+            $return[] = [
+                "species_reference" => isset($species_node->field_species->target_id) ? 
+                    $this->getSpeciesReference($species_node->field_species->target_id) : '', 
+                "stoichiometry" => isset($species_node->field_stoichiometry->value) ? $species_node->field_stoichiometry->value : '',
+            ];
+        }
+        
+        return $return;
+    }
+
+    /**
+     * Returns the species taxonomy term name used in getSpecies
      *
      * @param int $species_id
      * @return string taxonomy_name
