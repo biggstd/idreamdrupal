@@ -11,12 +11,13 @@ Use Drupal\field_collection\Entity\FieldCollectionItem;
 Use Symfony\Component\HttpFoundation\RedirectResponse;
 Use Drupal\Core\Url;
 
-class nmrExport {
+class Export {
     function __construct($unique_id) {
         $this->unique_output_id = $unique_id;
         $this->output = [];
         $this->node = null;
         $this->node_information = null;
+        $this->output_dir = \Drupal::service('file_system')->realpath(file_default_scheme() . "://") . '/vizdata/' . $this->unique_output_id;
     }
 
     public function buildAndSave(Node $node) {
@@ -27,32 +28,7 @@ class nmrExport {
         return true;
     }
 
-    private function build() {
-        // OLD
-        /*$this->output = [
-            'ID' => $this->node->get('uuid')->getValue()[0]['value'],
-            'Publications' => [
-                'Title' => $this->node->get('title')->getValue()[0]['value'],
-                'DOI' => $this->node->get('field_doi')->getValue()[0]['value'],
-                'Link' => $this->node->get('field_link')->getValue()[0]['uri'],
-            ],
-            'Experimentalist(s)' => $this->getAuthorArray($this->node->get('field_experimentalist_user')->getValue()[0]['target_id']),
-            'Experiment Date' => $this->node->get('field_experiment_date')->getValue()[0]['value'],
-            'Experiment Protocol(s)' => [
-                'NMR Data Aquisition' => [
-                    'degrees celsius' => $this->node->get('field_degrees_celcius')->getValue()[0]['value'],
-                    'Magnet Strength MHz' => $this->node->get('field_magnet_strength')->getValue()[0]['value'],
-                    'NMR Reference Compound' => $this->getReferenceCompounds($this->node->get('field_reference_compound')->getValue()[0]['target_id']),
-                    'Number of Scans' => $this->node->get('field_number_of_scans')->getValue()[0]['value']
-                ]
-            ],
-            'Samples' => $this->getSamples($this->node->field_samples),
-            'study_factors' => $this->getStudyFactors($this->node->field_study_factor),
-            'raw_data_file' => '',
-            'processed_data_file' => ''
-        ];*/
-        // NEW
-        
+    private function build() {      
         $this->output = [
             'node_information' => [
                 'node_title' => $this->node->get('title')->getValue()[0]['value'],
@@ -140,21 +116,64 @@ class nmrExport {
      * Reference: https://www.drupal8.ovh/en/tutoriels/47/create-a-file-drupal-8
      */
     private function save() {
-        $output_dir = \Drupal::service('file_system')->realpath(file_default_scheme() . "://") . '/vizdata/' . $this->unique_output_id;
-
-        if(!is_dir($output_dir)) {
-            if(!mkdir($output_dir, 0777, true)) {
+        if(!is_dir($this->output_dir)) {
+            if(!mkdir($this->output_dir, 0777, true)) {
                 // Creating directory failed, log it, report it to user
                 \Drupal::logger('idream_export_json')->error('Creating directory for visualization failed, node_id = ' . $this->node->get('nid')->getValue()[0]['value']);
             }
         }
 
         file_put_contents(
-            $output_dir . '/' . str_replace(' ', '_', $this->node->get('title')->getValue()[0]['value']) . '.json', 
+            $this->output_dir . '/' . str_replace(' ', '_', $this->node->get('title')->getValue()[0]['value']) . '.json', 
             json_encode($this->output, JSON_PRETTY_PRINT)
         );
 
+        $this->saveFilterView();
+
         return true;
+    }
+
+    /**
+     * This function saves a file called gq.json for the visualization app to know wich fields
+     * to filter on. Currently this is all card coded for an NMR view. Should be changed later.
+     *
+     * @return void
+     */
+    public function saveFilterView() {
+        $jq = [
+            "x_groups" => [
+                [
+                "column_name" => "Total Aluminate Concentration",
+                "factor_filters" => ["Molar"],
+                "species_filters" => ["Al"]
+                ],
+                [
+                "column_name" => "Counter Ion Concentration",
+                "factor_filters" => ["Molar"],
+                "species_filters" => ["Na+", "Li+", "Cs+", "K+"]
+                ],
+                [
+                "column_name" => "Counter Ion",
+                "factor_filters" => ["Species"],
+                "species_filters" => ["Na+", "Li+", "Cs+", "K+"]
+                ],
+                [
+                "column_name" => "Base Concentration",
+                "factor_filters" => ["Molar"],
+                "species_filters" => ["OH-"]
+                ]
+            ],
+            "y_groups" => [
+              [
+                "27 Al ppm" => ["ppm","Al"]
+              ]
+            ]
+        ];
+
+        file_put_contents(
+            $this->output_dir . '/gq.json', 
+            json_encode($jq, JSON_PRETTY_PRINT)
+        );
     }
 
     /**

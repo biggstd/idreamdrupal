@@ -25,7 +25,7 @@ class exportController extends ControllerBase {
      */
     function export(array $nodes) {
         $this->unique_output_id = uniqid();
-        $this->nmr =  new \Drupal\idream_export_json\lib\nmrExport($this->unique_output_id);
+        $this->nmr =  new \Drupal\idream_export_json\lib\export($this->unique_output_id);
         
         foreach($nodes as $node) {
             if($node->get('type')->getValue()[0]['target_id'] == 'experiment') {
